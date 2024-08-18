@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escaneo de INE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tutorial.css') }}">
+</head>
+<body>
+    <div class="top-bar">
+        <div id="cameraSelectContainer" style="border: 2px solid transparent; z-index: 1002;">
+            <span id="cameraIcon">📷</span>
+            <select id="cameraSelect"></select>
+        </div>
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+    </div>
+
+    <!-- Contenedor del tutorial -->
+    <div id="tutorial-container" class="tutorial">
+        <div id="tutorial-step">
+            <p id="tutorial-text">Bienvenido al escaneo de INE. Te guiaré paso a paso.</p>
+            <button id="next-button">Siguiente</button>
+            <div id="rotate-icon">🔄</div>
+        </div>
+    </div>
+
+    <!-- Icono de la mano animada -->
+    <div id="hand-icon">👆</div>
+
+    <!-- Texto parpadeante para seleccionar la cámara -->
+    <div id="camera-text">Seleccione la cámara trasera que más se ajuste</div>
+
+    <div id="rotate-message">
+        <p>Por favor gira tu celular</p>
+    </div>
+    
+    <div id="controls">
+        <button id="capture" disabled>Capture</button>
+        <div id="detected-classes" style="display: none;"></div>
+    </div>
+    
+    <div id="video-container">
+        <video id="video" width="320" height="240" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <img id="captured_image" src="">
+        <img id="detection-frame" src="{{ url_for('static', filename='images/detection_frame.png') }}" alt="Detection Frame" style="display:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+    </div>
+
+    <!-- Popup para confirmar la cámara -->
+    <div id="camera-confirm-popup" class="popup-overlay">
+        <div class="popup-content">
+            <p>¿Esta es la cámara correcta?</p>
+            <button id="confirm-yes">Sí</button>
+            <button id="confirm-no">No</button>
+        </div>
+    </div>
+
+    <!-- Mensaje de escaneo con imagen a la izquierda -->
+    <div id="scan-message-container" class="popup-overlay" style="display: none;">
+        <div class="popup-content">
+            <img id="scan2-image" src="{{ url_for('static', filename='images/scan2.png') }}" alt="Scan">
+            <p id="scan-message-text">Ahora pon tu INE debajo de la cámara.</p>
+            <button id="continue-button">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar los resultados de la validación -->
+<div id="validationResultModal" class="modal-overlay" style="z-index: 1100;">
+    <div class="modal-content">
+        <h2>Validation Result</h2>
+        <div id="document-details"></div>
+        <button onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tutorial.js') }}"></script>
+    <script>
+        function openModal(details) {
+            const modal = document.getElementById('validationResultModal');
+            const container = document.getElementById('document-details');
+            container.innerHTML = '';
+
+            for (const [key, value] of Object.entries(details)) {
+                const detailItem = document.createElement('div');
+                detailItem.className = 'detail-item';
+                detailItem.textContent = `${key}: ${value}`;
+                container.appendChild(detailItem);
+            }
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('validationResultModal');
+            modal.style.display = 'none';
+        }
+
+        function fetchValidation(validation_id) {
+            fetch(`/upload/validate/${validation_id}`)
+                .then(response => response.json())
+                .then(data => {
+                    openModal(data.details.document_details);
+                })
+                .catch(error => console.error('Error fetching validation:', error));
+        }
+    </script>
+</body>
+</html>
